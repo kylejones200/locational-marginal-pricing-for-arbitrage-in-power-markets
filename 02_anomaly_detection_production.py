@@ -16,13 +16,6 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn.covariance import EllipticEnvelope
 import matplotlib.pyplot as plt
 
-# Import Tufte plotting utilities
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from tda_utils import setup_tufte_plot, TufteColors
-
-
 # Configuration
 DATA_PATH = Path('../../egrid_all_plants_1996-2023.parquet')
 TARGET_YEAR = 2023
@@ -186,6 +179,8 @@ def visualize_results(df, iso_pred, lof_pred, cov_pred, ensemble_mask, features)
         ax.set_ylabel(y_feat.replace('_', ' ').title(), fontsize=10, fontweight='bold')
         ax.set_title(title, fontsize=11, fontweight='bold')
         ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.3)
+    
     # Row 1: Individual methods
     ax1 = fig.add_subplot(gs[0, 0])
     plot_scatter(ax1, 'log_generation', 'carbon_intensity', iso_pred, 'Isolation Forest')
@@ -213,6 +208,8 @@ def visualize_results(df, iso_pred, lof_pred, cov_pred, ensemble_mask, features)
     ax6.set_xlabel('Number of Methods Flagging', fontsize=10, fontweight='bold')
     ax6.set_ylabel('Number of Plants', fontsize=10, fontweight='bold')
     ax6.set_title('Method Agreement', fontsize=11, fontweight='bold')
+    ax6.grid(True, alpha=0.3, axis='y')
+    
     # Row 3: Distributions
     ax7 = fig.add_subplot(gs[2, 0])
     ax7.hist(df.loc[~ensemble_mask, 'carbon_intensity'], bins=50, alpha=0.7, 
@@ -223,6 +220,8 @@ def visualize_results(df, iso_pred, lof_pred, cov_pred, ensemble_mask, features)
     ax7.set_ylabel('Count', fontsize=10, fontweight='bold')
     ax7.set_title('Carbon Intensity Distribution', fontsize=11, fontweight='bold')
     ax7.legend(fontsize=9)
+    ax7.grid(True, alpha=0.3, axis='y')
+    
     ax8 = fig.add_subplot(gs[2, 1])
     ax8.hist(df.loc[~ensemble_mask, 'capacity_factor'], bins=50, alpha=0.7, 
             color='#3498db', label='Normal', edgecolor='black')
@@ -232,6 +231,8 @@ def visualize_results(df, iso_pred, lof_pred, cov_pred, ensemble_mask, features)
     ax8.set_ylabel('Count', fontsize=10, fontweight='bold')
     ax8.set_title('Capacity Factor Distribution', fontsize=11, fontweight='bold')
     ax8.legend(fontsize=9)
+    ax8.grid(True, alpha=0.3, axis='y')
+    
     # Summary stats
     ax9 = fig.add_subplot(gs[2, 2])
     ax9.axis('off')
