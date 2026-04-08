@@ -24,6 +24,13 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
 
+# Import Tufte plotting utilities
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from tda_utils import setup_tufte_plot, TufteColors
+
+
 
 
 
@@ -186,8 +193,6 @@ def generate_grid_analysis_dashboard():
                     edgecolor='black', linewidth=1.5)
     ax1.set_xlabel('Number of Lines', fontsize=11, weight='bold')
     ax1.set_title('Transmission Lines by Voltage Class', fontsize=12, weight='bold')
-    ax1.grid(True, alpha=0.3, axis='x', linestyle='--')
-    
     for i, (bar, count) in enumerate(zip(bars, line_counts)):
         width = bar.get_width()
         percentage = (count / sum(line_counts)) * 100
@@ -232,8 +237,6 @@ def generate_grid_analysis_dashboard():
     ax3.set_xticks(x)
     ax3.set_xticklabels(corridors, fontsize=9)
     ax3.legend(loc='upper right', ncol=3, fontsize=9)
-    ax3.grid(True, alpha=0.3, axis='y', linestyle='--')
-    
     # Top utilities
     ax4 = fig.add_subplot(gs[2, 0])
     utilities = ['FERC', 'AEP', 'Duke', 'Southern', 'Exelon', 'NextEra']
@@ -245,8 +248,6 @@ def generate_grid_analysis_dashboard():
     ax4.set_title('Top Transmission Owners', fontsize=11, weight='bold')
     ax4.set_xticks(range(len(utilities)))
     ax4.set_xticklabels(utilities, rotation=45, ha='right', fontsize=8)
-    ax4.grid(True, alpha=0.3, axis='y', linestyle='--')
-    
     for i, (bar, count) in enumerate(zip(bars, util_lines)):
         ax4.text(i, bar.get_height() + 500, f'{count:,}', 
                 ha='center', va='bottom', fontsize=8)
@@ -263,8 +264,6 @@ def generate_grid_analysis_dashboard():
     ax5.set_xlabel('Total Miles', fontsize=10, weight='bold')
     ax5.set_ylabel('Voltage (kV)', fontsize=10, weight='bold')
     ax5.set_title('Network Length by Voltage', fontsize=11, weight='bold')
-    ax5.grid(True, alpha=0.3, axis='x', linestyle='--')
-    
     for i, (bar, mile) in enumerate(zip(bars, miles)):
         ax5.text(mile + 3000, i, f'{mile:,}', va='center', fontsize=8)
     
@@ -284,8 +283,6 @@ def generate_grid_analysis_dashboard():
     ax6.set_xticklabels(regions, fontsize=9)
     ax6.set_ylim(0, 100)
     ax6.legend(fontsize=8)
-    ax6.grid(True, alpha=0.3, axis='y', linestyle='--')
-    
     for i, (bar, util) in enumerate(zip(bars, utilization)):
         ax6.text(i, bar.get_height() + 2, f'{util}%', 
                 ha='center', va='bottom', fontsize=9, weight='bold')
