@@ -1,6 +1,12 @@
 import sys
 import os
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 # Add parent directory to path to import plot_style
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
@@ -172,7 +178,7 @@ def generate_infrastructure_architecture():
     
     plt.tight_layout()
     plt.savefig('02_grid_infrastructure_architecture.png', bbox_inches='tight', dpi=300)
-    print("✓ Generated: 02_grid_infrastructure_architecture.png")
+    logger.info("✓ Generated: 02_grid_infrastructure_architecture.png")
     plt.close()
 
 
@@ -291,7 +297,7 @@ def generate_grid_analysis_dashboard():
                 fontsize=14, weight='bold', y=0.995)
     
     plt.savefig('02_grid_infrastructure_analysis.png', bbox_inches='tight', dpi=300)
-    print("✓ Generated: 02_grid_infrastructure_analysis.png")
+    logger.info("✓ Generated: 02_grid_infrastructure_analysis.png")
     plt.close()
 
 
@@ -418,19 +424,19 @@ def generate_grid_visualization_interface():
                        color='white')
     
     plt.savefig('02_grid_infrastructure_visualization.png', bbox_inches='tight', dpi=300)
-    print("✓ Generated: 02_grid_infrastructure_visualization.png")
+    logger.info("✓ Generated: 02_grid_infrastructure_visualization.png")
     plt.close()
 
 
 if __name__ == "__main__":
-    print("Generating visualizations for Grid Infrastructure Analysis Blog...\n")
+    logger.info("Generating visualizations for Grid Infrastructure Analysis Blog...\n")
     
     generate_infrastructure_architecture()
     generate_grid_analysis_dashboard()
     generate_grid_visualization_interface()
     
-    print("\n✓ All visualizations generated successfully!")
-    print("  - 02_grid_infrastructure_architecture.png")
-    print("  - 02_grid_infrastructure_analysis.png")
-    print("  - 02_grid_infrastructure_visualization.png")
+    logger.info("\n✓ All visualizations generated successfully!")
+    logger.info("  - 02_grid_infrastructure_architecture.png")
+    logger.info("  - 02_grid_infrastructure_analysis.png")
+    logger.info("  - 02_grid_infrastructure_visualization.png")
 

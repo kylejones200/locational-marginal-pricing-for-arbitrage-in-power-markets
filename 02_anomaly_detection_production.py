@@ -8,6 +8,12 @@ import pandas as pd
 import numpy as np
 import warnings
 from pathlib import Path
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 warnings.filterwarnings('ignore')
 
 from sklearn.preprocessing import StandardScaler
@@ -31,7 +37,7 @@ RANDOM_STATE = 42
 
 def load_and_prepare_data(year):
     """Load and engineer features for anomaly detection"""
-    print(f"Loading {year} data...")
+    logger.info(f"Loading {year} data...")
     plants = pd.read_parquet(DATA_PATH)
     df = plants[plants['data_year'] == year].copy()
     
@@ -50,12 +56,12 @@ def load_and_prepare_data(year):
     df['log_generation'] = np.log1p(gen)
     df['log_co2'] = np.log1p(co2)
     
-    print(f"Loaded {len(df):,} plants")
+    logger.info(f"Loaded {len(df):,} plants")
     return df
 
 def detect_anomalies_isolation_forest(X, contamination=0.05):
     """Isolation Forest anomaly detection"""
-    print("\n[1/4] Running Isolation Forest...")
+    logger.info("\n[1/4] Running Isolation Forest...")
     
     model = IsolationForest(
         contamination=contamination,
@@ -68,13 +74,13 @@ def detect_anomalies_isolation_forest(X, contamination=0.05):
     scores = model.score_samples(X)
     
     n_anomalies = (predictions == -1).sum()
-    print(f"  Found {n_anomalies:,} anomalies ({n_anomalies/len(X)*100:.1f}%)")
+    logger.info(f"  Found {n_anomalies:,} anomalies ({n_anomalies/len(X)*100:.1f}%)")
     
     return predictions, scores
 
 def detect_anomalies_lof(X, contamination=0.05):
     """Local Outlier Factor anomaly detection"""
-    print("\n[2/4] Running Local Outlier Factor...")
+    logger.info("\n[2/4] Running Local Outlier Factor...")
     
     model = LocalOutlierFactor(
         contamination=contamination,
@@ -86,13 +92,13 @@ def detect_anomalies_lof(X, contamination=0.05):
     scores = model.negative_outlier_factor_
     
     n_anomalies = (predictions == -1).sum()
-    print(f"  Found {n_anomalies:,} anomalies ({n_anomalies/len(X)*100:.1f}%)")
+    logger.info(f"  Found {n_anomalies:,} anomalies ({n_anomalies/len(X)*100:.1f}%)")
     
     return predictions, scores
 
 def detect_anomalies_robust_covariance(X, contamination=0.05):
     """Robust Covariance (Elliptic Envelope) anomaly detection"""
-    print("\n[3/4] Running Robust Covariance...")
+    logger.info("\n[3/4] Running Robust Covariance...")
     
     model = EllipticEnvelope(
         contamination=contamination,
@@ -104,13 +110,13 @@ def detect_anomalies_robust_covariance(X, contamination=0.05):
     scores = model.score_samples(X)
     
     n_anomalies = (predictions == -1).sum()
-    print(f"  Found {n_anomalies:,} anomalies ({n_anomalies/len(X)*100:.1f}%)")
+    logger.info(f"  Found {n_anomalies:,} anomalies ({n_anomalies/len(X)*100:.1f}%)")
     
     return predictions, scores
 
 def statistical_outliers(df, features, n_std=3):
     """Statistical outlier detection (Z-score)"""
-    print("\n[4/4] Running Statistical Outlier Detection...")
+    logger.info("\n[4/4] Running Statistical Outlier Detection...")
     
     outliers = np.zeros(len(df), dtype=bool)
     
@@ -121,7 +127,7 @@ def statistical_outliers(df, features, n_std=3):
         outliers |= (z_scores > n_std)
     
     n_outliers = outliers.sum()
-    print(f"  Found {n_outliers:,} outliers ({n_outliers/len(df)*100:.1f}%)")
+    logger.info(f"  Found {n_outliers:,} outliers ({n_outliers/len(df)*100:.1f}%)")
     
     return outliers
 
@@ -133,40 +139,40 @@ def ensemble_anomalies(predictions_list, threshold=2):
 
 def analyze_anomalies(df, anomaly_mask):
     """Analyze characteristics of detected anomalies"""
-    print("\nANOMALY ANALYSIS")
-    print("-" * 80)
+    logger.info("\nANOMALY ANALYSIS")
+    logger.info("-" * 80)
     
     anomalies = df[anomaly_mask]
     normal = df[~anomaly_mask]
     
-    print(f"Total anomalies: {len(anomalies):,} ({len(anomalies)/len(df)*100:.1f}%)")
-    print(f"Normal plants: {len(normal):,}")
+    logger.info(f"Total anomalies: {len(anomalies):,} ({len(anomalies)/len(df)*100:.1f}%)")
+    logger.info(f"Normal plants: {len(normal):,}")
     
-    print("\nComparison (median values):")
-    print(f"{'Metric':<30} {'Normal':<15} {'Anomalies':<15} {'Difference'}")
-    print("-" * 80)
+    logger.info("\nComparison (median values):")
+    logger.info(f"{'Metric':<30} {'Normal':<15} {'Anomalies':<15} {'Difference'}")
+    logger.info("-" * 80)
     
     metrics = ['carbon_intensity', 'capacity_factor', 'log_generation']
     for metric in metrics:
         normal_val = normal[metric].median()
         anomaly_val = anomalies[metric].median()
         diff = ((anomaly_val - normal_val) / normal_val * 100) if normal_val != 0 else 0
-        print(f"{metric:<30} {normal_val:<15.4f} {anomaly_val:<15.4f} {diff:+.1f}%")
+        logger.info(f"{metric:<30} {normal_val:<15.4f} {anomaly_val:<15.4f} {diff:+.1f}%")
     
     # Top anomalies
-    print("\nTop 5 Most Anomalous Plants:")
-    print("-" * 80)
+    logger.info("\nTop 5 Most Anomalous Plants:")
+    logger.info("-" * 80)
     top_anomalies = anomalies.nlargest(5, 'carbon_intensity')
     for idx, row in top_anomalies.iterrows():
         plant_name = row.get('Plant name', 'Unknown')
         state = row.get('Plant state abbreviation', '??')
         carbon = row['carbon_intensity']
         cap_factor = row['capacity_factor']
-        print(f"  {plant_name[:40]:<40} ({state}) - CI: {carbon:.3f}, CF: {cap_factor:.3f}")
+        logger.info(f"  {plant_name[:40]:<40} ({state}) - CI: {carbon:.3f}, CF: {cap_factor:.3f}")
 
 def visualize_results(df, iso_pred, lof_pred, cov_pred, ensemble_mask, features):
     """Create comprehensive visualization"""
-    print("\nGenerating visualizations...")
+    logger.info("\nGenerating visualizations...")
     
     fig = plt.figure(figsize=(18, 12))
     gs = fig.add_gridspec(3, 3, hspace=0.3, wspace=0.3)
@@ -266,7 +272,7 @@ Key Patterns:
                 fontsize=16, fontweight='bold', y=0.995)
     
     plt.savefig('02_anomaly_detection_results.png', dpi=300, bbox_inches='tight')
-    print("  Saved: 02_anomaly_detection_results.png")
+    logger.info("  Saved: 02_anomaly_detection_results.png")
 
 def export_anomalies(df, anomaly_mask, output_path='anomalies_flagged.csv'):
     """Export anomalies for review"""
@@ -277,13 +283,13 @@ def export_anomalies(df, anomaly_mask, output_path='anomalies_flagged.csv'):
     export_cols = [c for c in export_cols if c in anomalies.columns]
     
     anomalies[export_cols].to_csv(output_path, index=False)
-    print(f"\nExported {len(anomalies)} anomalies to: {output_path}")
+    logger.info(f"\nExported {len(anomalies)} anomalies to: {output_path}")
 
 def main():
     """Main execution"""
-    print("=" * 80)
-    print("ANOMALY DETECTION - PRODUCTION RUN")
-    print("=" * 80)
+    logger.info("=" * 80)
+    logger.info("ANOMALY DETECTION - PRODUCTION RUN")
+    logger.info("=" * 80)
     
     # Load data
     df = load_and_prepare_data(TARGET_YEAR)
@@ -295,7 +301,7 @@ def main():
     X = df[features].dropna()
     df_clean = df.loc[X.index].copy()
     
-    print(f"\nAnalyzing {len(X):,} plants with complete data")
+    logger.info(f"\nAnalyzing {len(X):,} plants with complete data")
     
     # Standardize
     scaler = StandardScaler()
@@ -307,9 +313,9 @@ def main():
     cov_pred, cov_scores = detect_anomalies_robust_covariance(X_scaled, CONTAMINATION)
     
     # Ensemble
-    print("\n[5/4] Creating Ensemble...")
+    logger.info("\n[5/4] Creating Ensemble...")
     ensemble_mask = ensemble_anomalies([iso_pred, lof_pred, cov_pred], threshold=2)
-    print(f"  Ensemble flagged {ensemble_mask.sum():,} plants ({ensemble_mask.sum()/len(X)*100:.1f}%)")
+    logger.info(f"  Ensemble flagged {ensemble_mask.sum():,} plants ({ensemble_mask.sum()/len(X)*100:.1f}%)")
     
     # Analyze
     analyze_anomalies(df_clean, ensemble_mask)
@@ -320,9 +326,9 @@ def main():
     # Export
     export_anomalies(df_clean, ensemble_mask)
     
-    print("\n" + "=" * 80)
-    print("✓ Complete!")
-    print("=" * 80)
+    logger.info("\n" + "=" * 80)
+    logger.info("✓ Complete!")
+    logger.info("=" * 80)
     
     return {
         'data': df_clean,
