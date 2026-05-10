@@ -170,108 +170,109 @@ def analyze_anomalies(df, anomaly_mask):
         cap_factor = row['capacity_factor']
         logger.info(f"  {plant_name[:40]:<40} ({state}) - CI: {carbon:.3f}, CF: {cap_factor:.3f}")
 
-def visualize_results(df, iso_pred, lof_pred, cov_pred, ensemble_mask, features):
+def visualize_results(df, iso_pred, lof_pred, cov_pred, ensemble_mask, features, plot: bool = False):
     """Create comprehensive visualization"""
     logger.info("\nGenerating visualizations...")
     
-    fig = plt.figure(figsize=(18, 12))
-    gs = fig.add_gridspec(3, 3, hspace=0.3, wspace=0.3)
+    if plot:
+        fig = plt.figure(figsize=(18, 12))
+        gs = fig.add_gridspec(3, 3, hspace=0.3, wspace=0.3)
     
     # Helper function
-    def plot_scatter(ax, x_feat, y_feat, predictions, title):
-        normal_mask = predictions == 1
-        anomaly_mask = predictions == -1
+        def plot_scatter(ax, x_feat, y_feat, predictions, title):
+            normal_mask = predictions == 1
+            anomaly_mask = predictions == -1
         
-        ax.scatter(df.loc[normal_mask, x_feat], df.loc[normal_mask, y_feat],
-                  c='#3498db', alpha=0.4, s=20, label='Normal', edgecolors='none')
-        ax.scatter(df.loc[anomaly_mask, x_feat], df.loc[anomaly_mask, y_feat],
-                  c='#e74c3c', alpha=0.8, s=80, marker='X', label='Anomaly', 
-                  edgecolors='darkred', linewidths=1)
+            ax.scatter(df.loc[normal_mask, x_feat], df.loc[normal_mask, y_feat],
+                      c='#3498db', alpha=0.4, s=20, label='Normal', edgecolors='none')
+            ax.scatter(df.loc[anomaly_mask, x_feat], df.loc[anomaly_mask, y_feat],
+                      c='#e74c3c', alpha=0.8, s=80, marker='X', label='Anomaly', 
+                      edgecolors='darkred', linewidths=1)
         
-        ax.set_xlabel(x_feat.replace('_', ' ').title(), fontsize=10, fontweight='bold')
-        ax.set_ylabel(y_feat.replace('_', ' ').title(), fontsize=10, fontweight='bold')
-        ax.set_title(title, fontsize=11, fontweight='bold')
-        ax.legend(fontsize=9)
+            ax.set_xlabel(x_feat.replace('_', ' ').title(), fontsize=10, fontweight='bold')
+            ax.set_ylabel(y_feat.replace('_', ' ').title(), fontsize=10, fontweight='bold')
+            ax.set_title(title, fontsize=11, fontweight='bold')
+            ax.legend(fontsize=9)
     # Row 1: Individual methods
-    ax1 = fig.add_subplot(gs[0, 0])
-    plot_scatter(ax1, 'log_generation', 'carbon_intensity', iso_pred, 'Isolation Forest')
+        ax1 = fig.add_subplot(gs[0, 0])
+        plot_scatter(ax1, 'log_generation', 'carbon_intensity', iso_pred, 'Isolation Forest')
     
-    ax2 = fig.add_subplot(gs[0, 1])
-    plot_scatter(ax2, 'log_generation', 'carbon_intensity', lof_pred, 'Local Outlier Factor')
+        ax2 = fig.add_subplot(gs[0, 1])
+        plot_scatter(ax2, 'log_generation', 'carbon_intensity', lof_pred, 'Local Outlier Factor')
     
-    ax3 = fig.add_subplot(gs[0, 2])
-    plot_scatter(ax3, 'log_generation', 'carbon_intensity', cov_pred, 'Robust Covariance')
+        ax3 = fig.add_subplot(gs[0, 2])
+        plot_scatter(ax3, 'log_generation', 'carbon_intensity', cov_pred, 'Robust Covariance')
     
     # Row 2: Ensemble and capacity factor
-    ax4 = fig.add_subplot(gs[1, 0])
-    ensemble_pred = np.where(ensemble_mask, -1, 1)
-    plot_scatter(ax4, 'log_generation', 'carbon_intensity', ensemble_pred, 'Ensemble (2+ votes)')
+        ax4 = fig.add_subplot(gs[1, 0])
+        ensemble_pred = np.where(ensemble_mask, -1, 1)
+        plot_scatter(ax4, 'log_generation', 'carbon_intensity', ensemble_pred, 'Ensemble (2+ votes)')
     
-    ax5 = fig.add_subplot(gs[1, 1])
-    plot_scatter(ax5, 'capacity_factor', 'carbon_intensity', ensemble_pred, 'Efficiency vs Emissions')
+        ax5 = fig.add_subplot(gs[1, 1])
+        plot_scatter(ax5, 'capacity_factor', 'carbon_intensity', ensemble_pred, 'Efficiency vs Emissions')
     
     # Method agreement
-    ax6 = fig.add_subplot(gs[1, 2])
-    votes = np.sum([iso_pred == -1, lof_pred == -1, cov_pred == -1], axis=0)
-    vote_counts = pd.Series(votes).value_counts().sort_index()
-    ax6.bar(vote_counts.index, vote_counts.values, color=['#2ecc71', '#f39c12', '#e67e22', '#e74c3c'], 
-           alpha=0.8, edgecolor='black', linewidth=1.5)
-    ax6.set_xlabel('Number of Methods Flagging', fontsize=10, fontweight='bold')
-    ax6.set_ylabel('Number of Plants', fontsize=10, fontweight='bold')
-    ax6.set_title('Method Agreement', fontsize=11, fontweight='bold')
+        ax6 = fig.add_subplot(gs[1, 2])
+        votes = np.sum([iso_pred == -1, lof_pred == -1, cov_pred == -1], axis=0)
+        vote_counts = pd.Series(votes).value_counts().sort_index()
+        ax6.bar(vote_counts.index, vote_counts.values, color=['#2ecc71', '#f39c12', '#e67e22', '#e74c3c'], 
+               alpha=0.8, edgecolor='black', linewidth=1.5)
+        ax6.set_xlabel('Number of Methods Flagging', fontsize=10, fontweight='bold')
+        ax6.set_ylabel('Number of Plants', fontsize=10, fontweight='bold')
+        ax6.set_title('Method Agreement', fontsize=11, fontweight='bold')
     # Row 3: Distributions
-    ax7 = fig.add_subplot(gs[2, 0])
-    ax7.hist(df.loc[~ensemble_mask, 'carbon_intensity'], bins=50, alpha=0.7, 
-            color='#3498db', label='Normal', edgecolor='black')
-    ax7.hist(df.loc[ensemble_mask, 'carbon_intensity'], bins=30, alpha=0.7, 
-            color='#e74c3c', label='Anomalies', edgecolor='darkred')
-    ax7.set_xlabel('Carbon Intensity', fontsize=10, fontweight='bold')
-    ax7.set_ylabel('Count', fontsize=10, fontweight='bold')
-    ax7.set_title('Carbon Intensity Distribution', fontsize=11, fontweight='bold')
-    ax7.legend(fontsize=9)
-    ax8 = fig.add_subplot(gs[2, 1])
-    ax8.hist(df.loc[~ensemble_mask, 'capacity_factor'], bins=50, alpha=0.7, 
-            color='#3498db', label='Normal', edgecolor='black')
-    ax8.hist(df.loc[ensemble_mask, 'capacity_factor'], bins=30, alpha=0.7, 
-            color='#e74c3c', label='Anomalies', edgecolor='darkred')
-    ax8.set_xlabel('Capacity Factor', fontsize=10, fontweight='bold')
-    ax8.set_ylabel('Count', fontsize=10, fontweight='bold')
-    ax8.set_title('Capacity Factor Distribution', fontsize=11, fontweight='bold')
-    ax8.legend(fontsize=9)
+        ax7 = fig.add_subplot(gs[2, 0])
+        ax7.hist(df.loc[~ensemble_mask, 'carbon_intensity'], bins=50, alpha=0.7, 
+                color='#3498db', label='Normal', edgecolor='black')
+        ax7.hist(df.loc[ensemble_mask, 'carbon_intensity'], bins=30, alpha=0.7, 
+                color='#e74c3c', label='Anomalies', edgecolor='darkred')
+        ax7.set_xlabel('Carbon Intensity', fontsize=10, fontweight='bold')
+        ax7.set_ylabel('Count', fontsize=10, fontweight='bold')
+        ax7.set_title('Carbon Intensity Distribution', fontsize=11, fontweight='bold')
+        ax7.legend(fontsize=9)
+        ax8 = fig.add_subplot(gs[2, 1])
+        ax8.hist(df.loc[~ensemble_mask, 'capacity_factor'], bins=50, alpha=0.7, 
+                color='#3498db', label='Normal', edgecolor='black')
+        ax8.hist(df.loc[ensemble_mask, 'capacity_factor'], bins=30, alpha=0.7, 
+                color='#e74c3c', label='Anomalies', edgecolor='darkred')
+        ax8.set_xlabel('Capacity Factor', fontsize=10, fontweight='bold')
+        ax8.set_ylabel('Count', fontsize=10, fontweight='bold')
+        ax8.set_title('Capacity Factor Distribution', fontsize=11, fontweight='bold')
+        ax8.legend(fontsize=9)
     # Summary stats
-    ax9 = fig.add_subplot(gs[2, 2])
-    ax9.axis('off')
+        ax9 = fig.add_subplot(gs[2, 2])
+        ax9.axis('off')
     
-    summary_text = f"""
-DETECTION SUMMARY
+        summary_text = f"""
+    DETECTION SUMMARY
 
-Total Plants: {len(df):,}
+    Total Plants: {len(df):,}
 
-Method Results:
-  • Isolation Forest: {(iso_pred == -1).sum():,}
-  • LOF: {(lof_pred == -1).sum():,}
-  • Robust Cov: {(cov_pred == -1).sum():,}
-  • Ensemble: {ensemble_mask.sum():,}
+    Method Results:
+      • Isolation Forest: {(iso_pred == -1).sum():,}
+      • LOF: {(lof_pred == -1).sum():,}
+      • Robust Cov: {(cov_pred == -1).sum():,}
+      • Ensemble: {ensemble_mask.sum():,}
 
-Ensemble Criteria:
-  Flagged by ≥2 methods
+    Ensemble Criteria:
+      Flagged by ≥2 methods
 
-Anomaly Rate: {ensemble_mask.sum()/len(df)*100:.1f}%
+    Anomaly Rate: {ensemble_mask.sum()/len(df)*100:.1f}%
 
-Key Patterns:
-  • High carbon intensity
-  • Unusual capacity factors
-  • Suspicious generation levels
-    """
+    Key Patterns:
+      • High carbon intensity
+      • Unusual capacity factors
+      • Suspicious generation levels
+        """
     
-    ax9.text(0.1, 0.95, summary_text, transform=ax9.transAxes,
-            fontsize=10, verticalalignment='top', fontfamily='monospace',
-            bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.3))
+        ax9.text(0.1, 0.95, summary_text, transform=ax9.transAxes,
+                fontsize=10, verticalalignment='top', fontfamily='monospace',
+                bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.3))
     
-    plt.suptitle(f'Anomaly Detection Results - {len(df):,} Power Plants ({TARGET_YEAR})',
-                fontsize=16, fontweight='bold', y=0.995)
+        plt.suptitle(f'Anomaly Detection Results - {len(df):,} Power Plants ({TARGET_YEAR})',
+                    fontsize=16, fontweight='bold', y=0.995)
     
-    plt.savefig('02_anomaly_detection_results.png', dpi=300, bbox_inches='tight')
+        plt.savefig('02_anomaly_detection_results.png', dpi=300, bbox_inches='tight')
     logger.info("  Saved: 02_anomaly_detection_results.png")
 
 def export_anomalies(df, anomaly_mask, output_path='anomalies_flagged.csv'):
