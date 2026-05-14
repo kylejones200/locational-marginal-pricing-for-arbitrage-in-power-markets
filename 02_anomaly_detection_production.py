@@ -140,7 +140,6 @@ def ensemble_anomalies(predictions_list, threshold=2):
 def analyze_anomalies(df, anomaly_mask):
     """Analyze characteristics of detected anomalies"""
     logger.info("\nANOMALY ANALYSIS")
-    logger.info("-" * 80)
     
     anomalies = df[anomaly_mask]
     normal = df[~anomaly_mask]
@@ -150,7 +149,6 @@ def analyze_anomalies(df, anomaly_mask):
     
     logger.info("\nComparison (median values):")
     logger.info(f"{'Metric':<30} {'Normal':<15} {'Anomalies':<15} {'Difference'}")
-    logger.info("-" * 80)
     
     metrics = ['carbon_intensity', 'capacity_factor', 'log_generation']
     for metric in metrics:
@@ -161,7 +159,6 @@ def analyze_anomalies(df, anomaly_mask):
     
     # Top anomalies
     logger.info("\nTop 5 Most Anomalous Plants:")
-    logger.info("-" * 80)
     top_anomalies = anomalies.nlargest(5, 'carbon_intensity')
     for idx, row in top_anomalies.iterrows():
         plant_name = row.get('Plant name', 'Unknown')
@@ -288,9 +285,7 @@ def export_anomalies(df, anomaly_mask, output_path='anomalies_flagged.csv'):
 
 def main():
     """Main execution"""
-    logger.info("=" * 80)
     logger.info("ANOMALY DETECTION - PRODUCTION RUN")
-    logger.info("=" * 80)
     
     # Load data
     df = load_and_prepare_data(TARGET_YEAR)
@@ -327,9 +322,7 @@ def main():
     # Export
     export_anomalies(df_clean, ensemble_mask)
     
-    logger.info("\n" + "=" * 80)
-    logger.info("✓ Complete!")
-    logger.info("=" * 80)
+    logger.info("=== ✓ Complete! ===")
     
     return {
         'data': df_clean,
