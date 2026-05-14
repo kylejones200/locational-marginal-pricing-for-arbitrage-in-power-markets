@@ -9,9 +9,9 @@ LMP isn't just another pricing mechanism—it's a real-time signal that reveals 
 Unlike commodity markets where a single price prevails, electricity prices vary by location within the same market. This spatial price differentiation reflects transmission constraints, generation costs, and local supply-demand imbalances. Professional power traders who master LMP analysis gain access to opportunities invisible to those watching only average market prices.
 
 The three components of LMP tell a complete story:
-- **Energy Component**: Base cost of generation
-- **Congestion Component**: Value of transmission constraints
-- **Loss Component**: Cost of electrical losses over distance
+- Energy Component: Base cost of generation
+- Congestion Component: Value of transmission constraints
+- Loss Component: Cost of electrical losses over distance
 
 When these components diverge significantly across nodes, profit opportunities emerge.
 
@@ -57,15 +57,15 @@ Integrating LMP analysis into a comprehensive trading approach considers spreads
 
 Mastering LMP analysis transforms power trading from commodity speculation into spatial arbitrage science:
 
-**1. Location Matters More Than Price**: A $10/MWh spread between nodes creates more profit than a $10/MWh price move at a single node, because you can simultaneously buy and sell.
+1. Location Matters More Than Price: A $10/MWh spread between nodes creates more profit than a $10/MWh price move at a single node, because you can simultaneously buy and sell.
 
-**2. Congestion Is Your Friend**: When others fear transmission constraints, sophisticated traders see opportunity. High congestion components signal profitable arbitrage.
+2. Congestion Is Your Friend: When others fear transmission constraints, sophisticated traders see opportunity. High congestion components signal profitable arbitrage.
 
-**3. Real-Time Monitoring Is Essential**: LMP opportunities emerge and disappear rapidly. Automated monitoring systems provide critical milliseconds of advantage.
+3. Real-Time Monitoring Is Essential: LMP opportunities emerge and disappear rapidly. Automated monitoring systems provide critical milliseconds of advantage.
 
-**4. Component Decomposition Reveals Truth**: Understanding whether high LMP reflects energy costs, congestion, or losses determines optimal trading response.
+4. Component Decomposition Reveals Truth: Understanding whether high LMP reflects energy costs, congestion, or losses determines optimal trading response.
 
-**5. FTRs Provide Leverage**: Financial Transmission Rights offer concentrated exposure to congestion revenue without physical delivery obligations, amplifying returns when spreads widen.
+5. FTRs Provide Leverage: Financial Transmission Rights offer concentrated exposure to congestion revenue without physical delivery obligations, amplifying returns when spreads widen.
 
 The examples demonstrate how you can deploy this solution. Start with basic spread identification, add real-time monitoring, incorporate FTR analysis, and refine your strategy based on actual execution results.
 
@@ -73,13 +73,13 @@ The examples demonstrate how you can deploy this solution. Start with basic spre
 
 Deploy LMP trading capabilities systematically:
 
-1. **Data Infrastructure**: Establish real-time LMP feeds from your ISO (PJM, CAISO, ERCOT, etc.)
-2. **Node Selection**: Identify high-value nodes based on historical spread analysis
-3. **Alert Systems**: Deploy automated monitoring for spread opportunities
-4. **Position Management**: Build execution infrastructure for simultaneous buy/sell trades
-5. **Risk Controls**: Implement limits on spread exposure and position concentration
-6. **FTR Integration**: Participate in FTR auctions using historical spread analysis
-7. **Performance Tracking**: Measure actual vs. expected P&L on executed trades
+1. Data Infrastructure: Establish real-time LMP feeds from your ISO (PJM, CAISO, ERCOT, etc.)
+2. Node Selection: Identify high-value nodes based on historical spread analysis
+3. Alert Systems: Deploy automated monitoring for spread opportunities
+4. Position Management: Build execution infrastructure for simultaneous buy/sell trades
+5. Risk Controls: Implement limits on spread exposure and position concentration
+6. FTR Integration: Participate in FTR auctions using historical spread analysis
+7. Performance Tracking: Measure actual vs. expected P&L on executed trades
 
 Professional LMP trading requires both analytical sophistication and operational excellence. While others trade on hub prices alone, you'll be capturing spreads invisible to conventional market participants—spreads that generate consistent profits across varying market conditions.
 
