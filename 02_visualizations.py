@@ -1,5 +1,3 @@
-import sys
-import os
 
 import logging
 logging.basicConfig(
@@ -14,15 +12,12 @@ Generates publication-quality figures at 300 DPI
 """
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.patches import Rectangle, FancyBboxPatch
+from matplotlib.patches import FancyBboxPatch
 import matplotlib.lines as mlines
 
 
 
-from pathlib import Path
 def generate_infrastructure_architecture(plot: bool = False):
     """Generate grid infrastructure system architecture diagram."""
     if plot:
@@ -213,11 +208,11 @@ def generate_grid_analysis_dashboard(plot: bool = False):
         x = np.arange(len(corridors))
         width = 0.25
     
-        bars1 = ax3.bar(x - width, parallel_lines, width, label='Parallel Lines', 
+        ax3.bar(x - width, parallel_lines, width, label='Parallel Lines', 
                        color="#696969", edgecolor='black', linewidth=1)
-        bars2 = ax3.bar(x, [v/10 for v in max_voltages], width, label='Max Voltage (÷10 kV)', 
+        ax3.bar(x, [v/10 for v in max_voltages], width, label='Max Voltage (÷10 kV)', 
                        color="#a0a0a0", edgecolor='black', linewidth=1)
-        bars3 = ax3.bar(x + width, criticality, width, label='Criticality Score', 
+        ax3.bar(x + width, criticality, width, label='Criticality Score', 
                        color="#2b2b2b", edgecolor='black', linewidth=1)
     
         ax3.set_xlabel('Transmission Corridor', fontsize=11, weight='bold')

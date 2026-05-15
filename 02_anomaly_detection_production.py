@@ -20,7 +20,6 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn.covariance import EllipticEnvelope
 import matplotlib.pyplot as plt
 
-import sys
 # Configuration
 DATA_PATH = Path('../../egrid_all_plants_1996-2023.parquet')
 TARGET_YEAR = 2023
@@ -256,7 +255,7 @@ def visualize_results(df, iso_pred, lof_pred, cov_pred, ensemble_mask, features,
     
         ax9.text(0.1, 0.95, summary_text, transform=ax9.transAxes,
                 fontsize=10, verticalalignment='top', fontfamily='monospace',
-                bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.3))
+                bbox={'boxstyle': 'round', 'facecolor': 'lightblue', 'alpha': 0.3})
     
         plt.suptitle(f'Anomaly Detection Results - {len(df):,} Power Plants ({TARGET_YEAR})',
                     fontsize=16, fontweight='bold', y=0.995)
