@@ -169,11 +169,12 @@ def analyze_anomalies(df, anomaly_mask):
     # Top anomalies
     logger.info("\nTop 5 Most Anomalous Plants:")
     top_anomalies = anomalies.nlargest(5, "carbon_intensity")
-    for idx, row in top_anomalies.iterrows():
-        plant_name = row.get("Plant name", "Unknown")
-        state = row.get("Plant state abbreviation", "??")
-        carbon = row["carbon_intensity"]
-        cap_factor = row["capacity_factor"]
+    for row in top_anomalies.itertuples():
+        idx = row.Index
+        plant_name = getattr(row, "Plant_name", "Unknown")
+        state = getattr(row, "Plant_state_abbreviation", "??")
+        carbon = row.carbon_intensity
+        cap_factor = row.capacity_factor
         logger.info(
             f"  {plant_name[:40]:<40} ({state}) - CI: {carbon:.3f}, CF: {cap_factor:.3f}"
         )
