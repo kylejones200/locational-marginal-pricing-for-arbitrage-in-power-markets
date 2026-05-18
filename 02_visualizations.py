@@ -1,8 +1,11 @@
 import logging
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+import matplotlib.lines as mlines
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import FancyBboxPatch
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 """
@@ -10,10 +13,6 @@ Visualization script for Grid Infrastructure Analysis Blog
 Generates publication-quality figures at 300 DPI
 """
 
-import matplotlib.lines as mlines
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.patches import FancyBboxPatch
 
 
 def generate_infrastructure_architecture(plot: bool = False):
@@ -23,7 +22,6 @@ def generate_infrastructure_architecture(plot: bool = False):
 
     fig, ax = plt.subplots(figsize=(14, 9))
     ax.axis("off")
-
     # Data layer
     y_data = 8
     data_box = FancyBboxPatch(
@@ -46,7 +44,6 @@ def generate_infrastructure_architecture(plot: bool = False):
         color="white",
         weight="bold",
     )
-
     # Storage layer
     y_storage = 6.5
     storage_items = [
@@ -54,7 +51,6 @@ def generate_infrastructure_architecture(plot: bool = False):
         {"name": "Spatial\nIndex", "x": 2.5, "color": "#696969"},
         {"name": "Metadata\nCache", "x": 4.5, "color": "#696969"},
     ]
-
     for item in storage_items:
         box = FancyBboxPatch(
             (item["x"], y_storage),
@@ -100,7 +96,6 @@ def generate_infrastructure_architecture(plot: bool = False):
         color="white",
         weight="bold",
     )
-
     # Analysis modules
     y_analysis = 3.5
     modules = [
@@ -109,7 +104,6 @@ def generate_infrastructure_architecture(plot: bool = False):
         {"name": "Owner\nMapping", "x": 3.5, "color": "#696969"},
         {"name": "Capacity\nAnalysis", "x": 5, "color": "#696969"},
     ]
-
     for module in modules:
         box = FancyBboxPatch(
             (module["x"], y_analysis),
@@ -155,7 +149,6 @@ def generate_infrastructure_architecture(plot: bool = False):
         color="white",
         weight="bold",
     )
-
     # Output layer
     y_output = 0.3
     outputs = [
@@ -164,7 +157,6 @@ def generate_infrastructure_architecture(plot: bool = False):
         {"name": "Reports", "x": 3.5},
         {"name": "Alerts", "x": 5},
     ]
-
     for output in outputs:
         box = FancyBboxPatch(
             (output["x"], y_output),
@@ -202,7 +194,6 @@ def generate_infrastructure_architecture(plot: bool = False):
     )
     ax.add_patch(integration_box)
     ax.text(8.5, 7.5, "Data Integration", ha="center", fontsize=11, weight="bold")
-
     integration_items = [
         {"name": "Load Forecasts", "y": 6.8},
         {"name": "Weather Data", "y": 6.1},
@@ -211,7 +202,6 @@ def generate_infrastructure_architecture(plot: bool = False):
         {"name": "Maintenance\nSchedules", "y": 4},
         {"name": "Capacity Limits", "y": 3.3},
     ]
-
     for item in integration_items:
         box = FancyBboxPatch(
             (7.3, item["y"]),
@@ -266,7 +256,6 @@ def generate_infrastructure_architecture(plot: bool = False):
         ec="black",
         linewidth=2,
     )
-
     # Integration arrows
     for y_pos in [6.8, 5.4, 4]:
         ax.arrow(
@@ -284,7 +273,6 @@ def generate_infrastructure_architecture(plot: bool = False):
 
     ax.set_xlim(-0.5, 10.5)
     ax.set_ylim(-0.5, 9.5)
-
     ax.text(
         5.5,
         9.3,
@@ -293,11 +281,8 @@ def generate_infrastructure_architecture(plot: bool = False):
         fontsize=14,
         weight="bold",
     )
-
     plt.tight_layout()
-    plt.savefig(
-        "02_grid_infrastructure_architecture.png", bbox_inches="tight", dpi=300
-    )
+    plt.savefig("02_grid_infrastructure_architecture.png", bbox_inches="tight", dpi=300)
     logger.info("✓ Generated: 02_grid_infrastructure_architecture.png")
     plt.close()
 
@@ -309,7 +294,6 @@ def generate_grid_analysis_dashboard(plot: bool = False):
 
     fig = plt.figure(figsize=(16, 10))
     gs = fig.add_gridspec(3, 3, hspace=0.35, wspace=0.35)
-
     # Voltage class distribution
     ax1 = fig.add_subplot(gs[0, :2])
     voltage_classes = [
@@ -321,7 +305,6 @@ def generate_grid_analysis_dashboard(plot: bool = False):
     ]
     line_counts = [1200, 3500, 12500, 28000, 45000]
     colors_voltage = ["#2b2b2b", "#696969", "#a0a0a0", "#d3d3d3", "#a0a0a0"]
-
     bars = ax1.barh(
         voltage_classes,
         line_counts,
@@ -348,7 +331,6 @@ def generate_grid_analysis_dashboard(plot: bool = False):
     line_types = ["Overhead", "Underground", "Submarine"]
     type_counts = [85, 13, 2]
     colors_types = ["#2b2b2b", "#696969", "#a0a0a0"]
-
     wedges, texts, autotexts = ax2.pie(
         type_counts,
         labels=line_types,
@@ -361,7 +343,6 @@ def generate_grid_analysis_dashboard(plot: bool = False):
         autotext.set_color("white")
         autotext.set_fontsize(10)
     ax2.set_title("Line Type Distribution", fontsize=11, weight="bold")
-
     # Critical corridors
     ax3 = fig.add_subplot(gs[1, :])
     corridors = [
@@ -374,10 +355,8 @@ def generate_grid_analysis_dashboard(plot: bool = False):
     parallel_lines = [12, 8, 15, 6, 25]
     max_voltages = [765, 500, 500, 345, 345]
     criticality = [95, 78, 92, 65, 88]
-
     x = np.arange(len(corridors))
     width = 0.25
-
     ax3.bar(
         x - width,
         parallel_lines,
@@ -405,12 +384,9 @@ def generate_grid_analysis_dashboard(plot: bool = False):
         edgecolor="black",
         linewidth=1,
     )
-
     ax3.set_xlabel("Transmission Corridor", fontsize=11, weight="bold")
     ax3.set_ylabel("Value", fontsize=11, weight="bold")
-    ax3.set_title(
-        "Critical Transmission Corridor Analysis", fontsize=12, weight="bold"
-    )
+    ax3.set_title("Critical Transmission Corridor Analysis", fontsize=12, weight="bold")
     ax3.set_xticks(x)
     ax3.set_xticklabels(corridors, fontsize=9)
     ax3.legend(loc="upper right", ncol=3, fontsize=9)
@@ -418,7 +394,6 @@ def generate_grid_analysis_dashboard(plot: bool = False):
     ax4 = fig.add_subplot(gs[2, 0])
     utilities = ["FERC", "AEP", "Duke", "Southern", "Exelon", "NextEra"]
     util_lines = [18500, 15200, 12800, 11200, 9800, 8500]
-
     bars = ax4.bar(
         range(len(utilities)),
         util_lines,
@@ -444,7 +419,6 @@ def generate_grid_analysis_dashboard(plot: bool = False):
     ax5 = fig.add_subplot(gs[2, 1])
     voltages_length = ["765", "500", "345", "230", "138"]
     miles = [12000, 28000, 65000, 120000, 185000]
-
     bars = ax5.barh(
         voltages_length,
         miles,
@@ -463,7 +437,6 @@ def generate_grid_analysis_dashboard(plot: bool = False):
     regions = ["West", "Texas", "Central", "East", "NE"]
     utilization = [72, 65, 58, 81, 76]
     colors_util = ["#a0a0a0" if u > 70 else "#696969" for u in utilization]
-
     bars = ax6.bar(
         range(len(regions)),
         utilization,
@@ -501,7 +474,6 @@ def generate_grid_analysis_dashboard(plot: bool = False):
         weight="bold",
         y=0.995,
     )
-
     plt.savefig("02_grid_infrastructure_analysis.png", bbox_inches="tight", dpi=300)
     logger.info("✓ Generated: 02_grid_infrastructure_analysis.png")
     plt.close()
@@ -514,7 +486,6 @@ def generate_grid_visualization_interface(plot: bool = False):
 
     fig = plt.figure(figsize=(16, 10))
     gs = fig.add_gridspec(2, 3, hspace=0.3, wspace=0.3, height_ratios=[2, 1])
-
     # Main map area (simulated)
     ax_map = fig.add_subplot(gs[0, :])
     ax_map.set_xlim(-125, -65)
@@ -529,7 +500,6 @@ def generate_grid_visualization_interface(plot: bool = False):
     ax_map.set_xlabel("Longitude", fontsize=10)
     ax_map.set_ylabel("Latitude", fontsize=10)
     ax_map.grid(True, alpha=0.3, linestyle="--")
-
     # Simulate transmission lines
     np.random.seed(42)
     for _ in range(80):
@@ -537,7 +507,6 @@ def generate_grid_visualization_interface(plot: bool = False):
         lat_start = np.random.uniform(28, 48)
         lon_end = lon_start + np.random.uniform(-5, 5)
         lat_end = lat_start + np.random.uniform(-3, 3)
-
         voltage = np.random.choice([765, 500, 345, 230])
         if voltage == 765:
             color = "#2b2b2b"
@@ -562,12 +531,8 @@ def generate_grid_visualization_interface(plot: bool = False):
 
     # Add legend for voltage classes
     legend_elements = [
-        mlines.Line2D(
-            [0], [0], color="#2b2b2b", linewidth=3, label="765 kV Ultra-High"
-        ),
-        mlines.Line2D(
-            [0], [0], color="#696969", linewidth=2.5, label="500 kV Extra-High"
-        ),
+        mlines.Line2D([0], [0], color="#2b2b2b", linewidth=3, label="765 kV Ultra-High"),
+        mlines.Line2D([0], [0], color="#696969", linewidth=2.5, label="500 kV Extra-High"),
         mlines.Line2D([0], [0], color="#a0a0a0", linewidth=2, label="345 kV High"),
         mlines.Line2D(
             [0],
@@ -584,7 +549,6 @@ def generate_grid_visualization_interface(plot: bool = False):
         framealpha=0.9,
         edgecolor="black",
     )
-
     # Query panel
     ax_query = fig.add_subplot(gs[1, 0])
     ax_query.axis("off")
@@ -597,7 +561,6 @@ def generate_grid_visualization_interface(plot: bool = False):
         weight="bold",
         transform=ax_query.transAxes,
     )
-
     query_options = [
         "Voltage Class: 345-765 kV",
         "Owner: All Utilities",
@@ -605,7 +568,6 @@ def generate_grid_visualization_interface(plot: bool = False):
         "Type: Overhead",
         "Region: CONUS",
     ]
-
     for i, option in enumerate(query_options):
         y_pos = 0.7 - i * 0.15
         box = FancyBboxPatch(
@@ -640,7 +602,6 @@ def generate_grid_visualization_interface(plot: bool = False):
         weight="bold",
         transform=ax_stats.transAxes,
     )
-
     stats_display = [
         ("Lines Displayed:", "8,427"),
         ("Total Miles:", "142,350"),
@@ -648,7 +609,6 @@ def generate_grid_visualization_interface(plot: bool = False):
         ("Unique Owners:", "42"),
         ("Substations:", "1,256"),
     ]
-
     for i, (label, value) in enumerate(stats_display):
         y_pos = 0.7 - i * 0.15
         ax_stats.text(
@@ -683,7 +643,6 @@ def generate_grid_visualization_interface(plot: bool = False):
         weight="bold",
         transform=ax_actions.transAxes,
     )
-
     actions = [
         "Export GeoJSON",
         "Generate Report",
@@ -691,7 +650,6 @@ def generate_grid_visualization_interface(plot: bool = False):
         "View Details",
     ]
     action_colors = ["#696969", "#2b2b2b", "#a0a0a0", "#a0a0a0"]
-
     for i, (action, color) in enumerate(zip(actions, action_colors)):
         y_pos = 0.7 - i * 0.15
         box = FancyBboxPatch(
@@ -717,20 +675,16 @@ def generate_grid_visualization_interface(plot: bool = False):
             color="white",
         )
 
-    plt.savefig(
-        "02_grid_infrastructure_visualization.png", bbox_inches="tight", dpi=300
-    )
+    plt.savefig("02_grid_infrastructure_visualization.png", bbox_inches="tight", dpi=300)
     logger.info("✓ Generated: 02_grid_infrastructure_visualization.png")
     plt.close()
 
 
 if __name__ == "__main__":
     logger.info("Generating visualizations for Grid Infrastructure Analysis Blog...\n")
-
     generate_infrastructure_architecture()
     generate_grid_analysis_dashboard()
     generate_grid_visualization_interface()
-
     logger.info("\n✓ All visualizations generated successfully!")
     logger.info("  - 02_grid_infrastructure_architecture.png")
     logger.info("  - 02_grid_infrastructure_analysis.png")

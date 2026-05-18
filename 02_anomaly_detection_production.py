@@ -7,19 +7,17 @@ Identifies suspicious emissions patterns using multiple algorithms
 import logging
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
-import matplotlib.pyplot as plt
 from sklearn.covariance import EllipticEnvelope
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import StandardScaler
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 
 # Configuration
 DATA_PATH = Path("../../egrid_all_plants_1996-2023.parquet")
@@ -33,7 +31,6 @@ def load_and_prepare_data(year):
     logger.info(f"Loading {year} data...")
     plants = pd.read_parquet(DATA_PATH)
     df = plants[plants["data_year"] == year].copy()
-
     # Convert to numeric
     gen = pd.to_numeric(df["Plant annual net generation (MWh)"], errors="coerce")
     co2 = pd.to_numeric(df["Plant annual CO2 emissions (tons)"], errors="coerce")
@@ -46,7 +43,6 @@ def load_and_prepare_data(year):
         errors="coerce",
     )
     capacity = pd.to_numeric(df["Plant nameplate capacity (MW)"], errors="coerce")
-
     # Feature engineering
     df["carbon_intensity"] = np.where(gen > 0, co2 / gen, np.nan)
     df["nox_intensity"] = np.where(gen > 0, nox / gen, np.nan)
@@ -54,7 +50,6 @@ def load_and_prepare_data(year):
     df["capacity_factor"] = np.where(capacity > 0, gen / (capacity * 8760), np.nan)
     df["log_generation"] = np.log1p(gen)
     df["log_co2"] = np.log1p(co2)
-
     logger.info(f"Loaded {len(df):,} plants")
     return df
 
@@ -62,67 +57,47 @@ def load_and_prepare_data(year):
 def detect_anomalies_isolation_forest(X, contamination=0.05):
     """Isolation Forest anomaly detection"""
     logger.info("\n[1/4] Running Isolation Forest...")
-
     model = IsolationForest(
         contamination=contamination,
         random_state=RANDOM_STATE,
         n_jobs=-1,
         n_estimators=200,
     )
-
     predictions = model.fit_predict(X)
     scores = model.score_samples(X)
-
     n_anomalies = (predictions == -1).sum()
-    logger.info(
-        f"  Found {n_anomalies:,} anomalies ({n_anomalies / len(X) * 100:.1f}%)"
-    )
-
+    logger.info(f"  Found {n_anomalies:,} anomalies ({n_anomalies / len(X) * 100:.1f}%)")
     return predictions, scores
 
 
 def detect_anomalies_lof(X, contamination=0.05):
     """Local Outlier Factor anomaly detection"""
     logger.info("\n[2/4] Running Local Outlier Factor...")
-
     model = LocalOutlierFactor(contamination=contamination, n_neighbors=20, n_jobs=-1)
-
     predictions = model.fit_predict(X)
     scores = model.negative_outlier_factor_
-
     n_anomalies = (predictions == -1).sum()
-    logger.info(
-        f"  Found {n_anomalies:,} anomalies ({n_anomalies / len(X) * 100:.1f}%)"
-    )
-
+    logger.info(f"  Found {n_anomalies:,} anomalies ({n_anomalies / len(X) * 100:.1f}%)")
     return predictions, scores
 
 
 def detect_anomalies_robust_covariance(X, contamination=0.05):
     """Robust Covariance (Elliptic Envelope) anomaly detection"""
     logger.info("\n[3/4] Running Robust Covariance...")
-
     model = EllipticEnvelope(
         contamination=contamination, random_state=RANDOM_STATE, support_fraction=0.8
     )
-
     predictions = model.fit_predict(X)
     scores = model.score_samples(X)
-
     n_anomalies = (predictions == -1).sum()
-    logger.info(
-        f"  Found {n_anomalies:,} anomalies ({n_anomalies / len(X) * 100:.1f}%)"
-    )
-
+    logger.info(f"  Found {n_anomalies:,} anomalies ({n_anomalies / len(X) * 100:.1f}%)")
     return predictions, scores
 
 
 def statistical_outliers(df, features, n_std=3):
     """Statistical outlier detection (Z-score)"""
     logger.info("\n[4/4] Running Statistical Outlier Detection...")
-
     outliers = np.zeros(len(df), dtype=bool)
-
     for feature in features:
         mean = df[feature].mean()
         std = df[feature].std()
@@ -131,7 +106,6 @@ def statistical_outliers(df, features, n_std=3):
 
     n_outliers = outliers.sum()
     logger.info(f"  Found {n_outliers:,} outliers ({n_outliers / len(df) * 100:.1f}%)")
-
     return outliers
 
 
@@ -145,39 +119,28 @@ def ensemble_anomalies(predictions_list, threshold=2):
 def analyze_anomalies(df, anomaly_mask):
     """Analyze characteristics of detected anomalies"""
     logger.info("\nANOMALY ANALYSIS")
-
     anomalies = df[anomaly_mask]
     normal = df[~anomaly_mask]
-
-    logger.info(
-        f"Total anomalies: {len(anomalies):,} ({len(anomalies) / len(df) * 100:.1f}%)"
-    )
+    logger.info(f"Total anomalies: {len(anomalies):,} ({len(anomalies) / len(df) * 100:.1f}%)")
     logger.info(f"Normal plants: {len(normal):,}")
-
     logger.info("\nComparison (median values):")
     logger.info(f"{'Metric':<30} {'Normal':<15} {'Anomalies':<15} {'Difference'}")
-
     metrics = ["carbon_intensity", "capacity_factor", "log_generation"]
     for metric in metrics:
         normal_val = normal[metric].median()
         anomaly_val = anomalies[metric].median()
         diff = ((anomaly_val - normal_val) / normal_val * 100) if normal_val != 0 else 0
-        logger.info(
-            f"{metric:<30} {normal_val:<15.4f} {anomaly_val:<15.4f} {diff:+.1f}%"
-        )
+        logger.info(f"{metric:<30} {normal_val:<15.4f} {anomaly_val:<15.4f} {diff:+.1f}%")
 
     # Top anomalies
     logger.info("\nTop 5 Most Anomalous Plants:")
     top_anomalies = anomalies.nlargest(5, "carbon_intensity")
     for row in top_anomalies.itertuples():
-        idx = row.Index
         plant_name = getattr(row, "Plant_name", "Unknown")
         state = getattr(row, "Plant_state_abbreviation", "??")
         carbon = row.carbon_intensity
         cap_factor = row.capacity_factor
-        logger.info(
-            f"  {plant_name[:40]:<40} ({state}) - CI: {carbon:.3f}, CF: {cap_factor:.3f}"
-        )
+        logger.info(f"  {plant_name[:40]:<40} ({state}) - CI: {carbon:.3f}, CF: {cap_factor:.3f}")
 
 
 def visualize_results(
@@ -185,7 +148,6 @@ def visualize_results(
 ):
     """Create comprehensive visualization"""
     logger.info("\nGenerating visualizations...")
-
     if plot:
         fig = plt.figure(figsize=(18, 12))
         gs = fig.add_gridspec(3, 3, hspace=0.3, wspace=0.3)
@@ -194,7 +156,6 @@ def visualize_results(
         def plot_scatter(ax, x_feat, y_feat, predictions, title):
             normal_mask = predictions == 1
             anomaly_mask = predictions == -1
-
             ax.scatter(
                 df.loc[normal_mask, x_feat],
                 df.loc[normal_mask, y_feat],
@@ -215,32 +176,18 @@ def visualize_results(
                 edgecolors="darkred",
                 linewidths=1,
             )
-
-            ax.set_xlabel(
-                x_feat.replace("_", " ").title(), fontsize=10, fontweight="bold"
-            )
-            ax.set_ylabel(
-                y_feat.replace("_", " ").title(), fontsize=10, fontweight="bold"
-            )
+            ax.set_xlabel(x_feat.replace("_", " ").title(), fontsize=10, fontweight="bold")
+            ax.set_ylabel(y_feat.replace("_", " ").title(), fontsize=10, fontweight="bold")
             ax.set_title(title, fontsize=11, fontweight="bold")
             ax.legend(fontsize=9)
 
         # Row 1: Individual methods
         ax1 = fig.add_subplot(gs[0, 0])
-        plot_scatter(
-            ax1, "log_generation", "carbon_intensity", iso_pred, "Isolation Forest"
-        )
-
+        plot_scatter(ax1, "log_generation", "carbon_intensity", iso_pred, "Isolation Forest")
         ax2 = fig.add_subplot(gs[0, 1])
-        plot_scatter(
-            ax2, "log_generation", "carbon_intensity", lof_pred, "Local Outlier Factor"
-        )
-
+        plot_scatter(ax2, "log_generation", "carbon_intensity", lof_pred, "Local Outlier Factor")
         ax3 = fig.add_subplot(gs[0, 2])
-        plot_scatter(
-            ax3, "log_generation", "carbon_intensity", cov_pred, "Robust Covariance"
-        )
-
+        plot_scatter(ax3, "log_generation", "carbon_intensity", cov_pred, "Robust Covariance")
         # Row 2: Ensemble and capacity factor
         ax4 = fig.add_subplot(gs[1, 0])
         ensemble_pred = np.where(ensemble_mask, -1, 1)
@@ -251,7 +198,6 @@ def visualize_results(
             ensemble_pred,
             "Ensemble (2+ votes)",
         )
-
         ax5 = fig.add_subplot(gs[1, 1])
         plot_scatter(
             ax5,
@@ -260,7 +206,6 @@ def visualize_results(
             ensemble_pred,
             "Efficiency vs Emissions",
         )
-
         # Method agreement
         ax6 = fig.add_subplot(gs[1, 2])
         votes = np.sum([iso_pred == -1, lof_pred == -1, cov_pred == -1], axis=0)
@@ -322,12 +267,9 @@ def visualize_results(
         # Summary stats
         ax9 = fig.add_subplot(gs[2, 2])
         ax9.axis("off")
-
         summary_text = f"""
     DETECTION SUMMARY
-
     Total Plants: {len(df):,}
-
     Method Results:
       • Isolation Forest: {(iso_pred == -1).sum():,}
       • LOF: {(lof_pred == -1).sum():,}
@@ -338,13 +280,11 @@ def visualize_results(
       Flagged by ≥2 methods
 
     Anomaly Rate: {ensemble_mask.sum() / len(df) * 100:.1f}%
-
     Key Patterns:
       • High carbon intensity
       • Unusual capacity factors
       • Suspicious generation levels
         """
-
         ax9.text(
             0.1,
             0.95,
@@ -355,14 +295,12 @@ def visualize_results(
             fontfamily="monospace",
             bbox={"boxstyle": "round", "facecolor": "lightblue", "alpha": 0.3},
         )
-
         plt.suptitle(
             f"Anomaly Detection Results - {len(df):,} Power Plants ({TARGET_YEAR})",
             fontsize=16,
             fontweight="bold",
             y=0.995,
         )
-
         plt.savefig("02_anomaly_detection_results.png", dpi=300, bbox_inches="tight")
     logger.info("  Saved: 02_anomaly_detection_results.png")
 
@@ -370,7 +308,6 @@ def visualize_results(
 def export_anomalies(df, anomaly_mask, output_path="anomalies_flagged.csv"):
     """Export anomalies for review"""
     anomalies = df[anomaly_mask].copy()
-
     export_cols = [
         "Plant name",
         "Plant state abbreviation",
@@ -380,7 +317,6 @@ def export_anomalies(df, anomaly_mask, output_path="anomalies_flagged.csv"):
         "log_generation",
     ]
     export_cols = [c for c in export_cols if c in anomalies.columns]
-
     anomalies[export_cols].to_csv(output_path, index=False)
     logger.info(f"\nExported {len(anomalies)} anomalies to: {output_path}")
 
@@ -388,10 +324,8 @@ def export_anomalies(df, anomaly_mask, output_path="anomalies_flagged.csv"):
 def main():
     """Main execution"""
     logger.info("ANOMALY DETECTION - PRODUCTION RUN")
-
     # Load data
     df = load_and_prepare_data(TARGET_YEAR)
-
     # Prepare features
     features = [
         "log_generation",
@@ -401,39 +335,29 @@ def main():
         "nox_intensity",
         "so2_intensity",
     ]
-
     X = df[features].dropna()
     df_clean = df.loc[X.index].copy()
-
     logger.info(f"\nAnalyzing {len(X):,} plants with complete data")
-
     # Standardize
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-
     # Run all methods
     iso_pred, iso_scores = detect_anomalies_isolation_forest(X_scaled, CONTAMINATION)
     lof_pred, lof_scores = detect_anomalies_lof(X_scaled, CONTAMINATION)
     cov_pred, cov_scores = detect_anomalies_robust_covariance(X_scaled, CONTAMINATION)
-
     # Ensemble
     logger.info("\n[5/4] Creating Ensemble...")
     ensemble_mask = ensemble_anomalies([iso_pred, lof_pred, cov_pred], threshold=2)
     logger.info(
         f"  Ensemble flagged {ensemble_mask.sum():,} plants ({ensemble_mask.sum() / len(X) * 100:.1f}%)"
     )
-
     # Analyze
     analyze_anomalies(df_clean, ensemble_mask)
-
     # Visualize
     visualize_results(df_clean, iso_pred, lof_pred, cov_pred, ensemble_mask, features)
-
     # Export
     export_anomalies(df_clean, ensemble_mask)
-
     logger.info("=== ✓ Complete! ===")
-
     return {
         "data": df_clean,
         "anomalies": df_clean[ensemble_mask],
