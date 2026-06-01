@@ -1,0 +1,9 @@
+[package]
+name = "locational_marginal_pricing_for_arbitrage_in_power_markets_core"
+description = "LMP = energy + congestion + loss"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"

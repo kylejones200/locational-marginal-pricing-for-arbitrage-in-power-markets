@@ -1,0 +1,15 @@
+[package]
+name = "locational_marginal_pricing_for_arbitrage_in_power_markets_rs"
+description = "Python bindings (PyO3) for locational_marginal_pricing_for_arbitrage_in_power_markets_core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "locational_marginal_pricing_for_arbitrage_in_power_markets_rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+locational_marginal_pricing_for_arbitrage_in_power_markets_core = { path = "../core" }
+pyo3 = { version = "0.28", features = ["extension-module"] }
+numpy = "0.28"

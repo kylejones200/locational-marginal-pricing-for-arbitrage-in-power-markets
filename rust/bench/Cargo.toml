@@ -1,0 +1,13 @@
+[package]
+name = "locational_marginal_pricing_for_arbitrage_in_power_markets_bench"
+description = "Standalone Rust benchmark (no Python)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "bench"
+path = "src/main.rs"
+
+[dependencies]
+locational_marginal_pricing_for_arbitrage_in_power_markets_core = { path = "../core" }
